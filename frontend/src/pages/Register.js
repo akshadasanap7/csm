@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import api from '../api/axios';
 import { useNavigate, Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
+import { FiUser, FiMail, FiLock, FiShield } from 'react-icons/fi';
 
 const Register = () => {
   const navigate = useNavigate();
@@ -13,7 +15,7 @@ const Register = () => {
     setLoading(true);
     try {
       await api.post('/auth/register', form);
-      toast.success('Account created! Please login.');
+      toast.success('Account created!');
       navigate('/login');
     } catch (err) {
       toast.error(err.response?.data?.msg || 'Registration failed');
@@ -23,38 +25,74 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-900">
-      <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
-        <h2 className="text-2xl font-bold text-gray-800 mb-2">Create Account</h2>
-        <p className="text-gray-500 mb-6 text-sm">Join SmartCRM</p>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {['name', 'email', 'password'].map(field => (
-            <input
-              key={field} type={field === 'password' ? 'password' : field === 'email' ? 'email' : 'text'}
-              placeholder={field.charAt(0).toUpperCase() + field.slice(1)} required
-              className="w-full border rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              value={form[field]} onChange={e => setForm({ ...form, [field]: e.target.value })}
-            />
-          ))}
-          <select
-            className="w-full border rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            value={form.role} onChange={e => setForm({ ...form, role: e.target.value })}
-          >
-            <option value="sales">Sales Employee</option>
-            <option value="manager">Manager</option>
-            <option value="admin">Admin</option>
-          </select>
-          <button
-            type="submit" disabled={loading}
-            className="w-full bg-blue-600 text-white py-2.5 rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
-          >
-            {loading ? 'Creating...' : 'Create Account'}
-          </button>
-        </form>
-        <p className="text-center text-sm text-gray-500 mt-4">
-          Have an account? <Link to="/login" className="text-blue-600 hover:underline">Login</Link>
-        </p>
+    <div className="min-h-screen flex items-center justify-center relative overflow-hidden"
+      style={{ background: 'linear-gradient(135deg, #0f0c29, #302b63, #24243e)' }}>
+
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <motion.div animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 8, repeat: Infinity }}
+          className="absolute -top-40 -right-40 w-96 h-96 rounded-full"
+          style={{ background: 'radial-gradient(circle, rgba(240,147,251,0.3), transparent)' }} />
+        <motion.div animate={{ scale: [1.2, 1, 1.2] }} transition={{ duration: 10, repeat: Infinity }}
+          className="absolute -bottom-40 -left-40 w-96 h-96 rounded-full"
+          style={{ background: 'radial-gradient(circle, rgba(79,172,254,0.3), transparent)' }} />
       </div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="w-full max-w-md mx-4 relative z-10"
+      >
+        <div className="glass-card p-8">
+          <div className="text-center mb-8">
+            <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.2, type: 'spring' }}
+              className="w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center"
+              style={{ background: 'linear-gradient(135deg, #f093fb, #f5576c)' }}>
+              <FiUser size={24} className="text-white" />
+            </motion.div>
+            <h1 className="text-2xl font-bold text-white">Create Account</h1>
+            <p className="text-white/50 text-sm mt-1">Join SmartCRM today</p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {[
+              { field: 'name', icon: FiUser, placeholder: 'Full Name', type: 'text' },
+              { field: 'email', icon: FiMail, placeholder: 'Email Address', type: 'email' },
+              { field: 'password', icon: FiLock, placeholder: 'Password', type: 'password' },
+            ].map(({ field, icon: Icon, placeholder, type }) => (
+              <div key={field} className="relative">
+                <Icon className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40" size={16} />
+                <input type={type} placeholder={placeholder} required
+                  className="glass-input pl-11"
+                  value={form[field]} onChange={e => setForm({ ...form, [field]: e.target.value })} />
+              </div>
+            ))}
+
+            <div className="relative">
+              <FiShield className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40" size={16} />
+              <select className="glass-input pl-11 cursor-pointer"
+                value={form.role} onChange={e => setForm({ ...form, role: e.target.value })}
+                style={{ background: 'rgba(255,255,255,0.07)' }}>
+                <option value="sales" style={{ background: '#1a1a2e' }}>Sales Employee</option>
+                <option value="manager" style={{ background: '#1a1a2e' }}>Manager</option>
+                <option value="admin" style={{ background: '#1a1a2e' }}>Admin</option>
+              </select>
+            </div>
+
+            <motion.button type="submit" disabled={loading}
+              whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+              className="gradient-btn w-full py-3 text-sm mt-2"
+              style={{ background: 'linear-gradient(135deg, #f093fb, #f5576c)' }}>
+              {loading ? 'Creating...' : 'Create Account'}
+            </motion.button>
+          </form>
+
+          <p className="text-center text-sm text-white/40 mt-6">
+            Already have an account?{' '}
+            <Link to="/login" className="text-purple-400 hover:text-purple-300 font-medium">Sign in</Link>
+          </p>
+        </div>
+      </motion.div>
     </div>
   );
 };

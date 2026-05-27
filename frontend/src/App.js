@@ -8,8 +8,10 @@ import Dashboard from './pages/Dashboard';
 import Customers from './pages/Customers';
 import Leads from './pages/Leads';
 import FollowUps from './pages/FollowUps';
+import Analytics from './pages/Analytics';
+import Employees from './pages/Employees';
 import Activities from './pages/Activities';
-import Reports from './pages/Reports';
+import Settings from './pages/Settings';
 
 const App = () => (
   <AuthProvider>
@@ -21,8 +23,10 @@ const App = () => (
         <Route path="/customers" element={<PrivateRoute><Layout><Customers /></Layout></PrivateRoute>} />
         <Route path="/leads" element={<PrivateRoute><Layout><Leads /></Layout></PrivateRoute>} />
         <Route path="/followups" element={<PrivateRoute><Layout><FollowUps /></Layout></PrivateRoute>} />
+        <Route path="/analytics" element={<PrivateRoute><Layout><Analytics /></Layout></PrivateRoute>} />
+        <Route path="/employees" element={<PrivateRoute><Layout><Employees /></Layout></PrivateRoute>} />
         <Route path="/activities" element={<PrivateRoute><Layout><Activities /></Layout></PrivateRoute>} />
-        <Route path="/reports" element={<PrivateRoute><Layout><Reports /></Layout></PrivateRoute>} />
+        <Route path="/settings" element={<PrivateRoute><Layout><Settings /></Layout></PrivateRoute>} />
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </BrowserRouter>
