@@ -6,6 +6,7 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts';
 import { FiDownload, FiTrendingUp, FiDollarSign, FiUsers, FiPercent } from 'react-icons/fi';
+import toast from 'react-hot-toast';
 
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const COLORS = ['#667eea','#f093fb','#4facfe','#43e97b','#f5576c','#6b7280'];
