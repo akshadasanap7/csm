@@ -4,6 +4,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { FiPlus, FiEdit2, FiTrash2, FiSearch, FiUser, FiMail, FiPhone, FiX } from 'react-icons/fi';
 
+const card = { background: 'rgba(255,255,255,0.07)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '20px' };
+const inputStyle = { width: '100%', boxSizing: 'border-box', padding: '11px 16px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '12px', color: 'white', fontSize: '14px', outline: 'none' };
 const EMPTY = { name: '', email: '', phone: '', company: '', address: '', notes: '' };
 
 const Customers = () => {
@@ -14,160 +16,137 @@ const Customers = () => {
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
 
-  const load = async () => {
-    setLoading(true);
-    const res = await api.get('/customers');
-    setCustomers(res.data);
-    setLoading(false);
-  };
-
+  const load = async () => { setLoading(true); const res = await api.get('/customers'); setCustomers(res.data); setLoading(false); };
   useEffect(() => { load(); }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      if (editId) { await api.put(`/customers/${editId}`, form); toast.success('Customer updated!'); }
+      if (editId) { await api.put(`/customers/${editId}`, form); toast.success('Updated!'); }
       else { await api.post('/customers', form); toast.success('Customer added!'); }
       setShowModal(false); setForm(EMPTY); setEditId(null); load();
     } catch (err) { toast.error(err.response?.data?.msg || 'Error'); }
   };
 
-  const handleEdit = (c) => {
-    setForm({ name: c.name, email: c.email || '', phone: c.phone || '', company: c.company || '', address: c.address || '', notes: c.notes || '' });
-    setEditId(c._id); setShowModal(true);
-  };
-
-  const handleDelete = async (id) => {
-    if (!window.confirm('Delete this customer?')) return;
-    await api.delete(`/customers/${id}`); toast.success('Deleted!'); load();
-  };
-
-  const filtered = customers.filter(c =>
-    c.name?.toLowerCase().includes(search.toLowerCase()) ||
-    c.email?.toLowerCase().includes(search.toLowerCase()) ||
-    c.company?.toLowerCase().includes(search.toLowerCase())
-  );
+  const handleEdit = (c) => { setForm({ name: c.name, email: c.email || '', phone: c.phone || '', company: c.company || '', address: c.address || '', notes: c.notes || '' }); setEditId(c._id); setShowModal(true); };
+  const handleDelete = async (id) => { if (!window.confirm('Delete?')) return; await api.delete(`/customers/${id}`); toast.success('Deleted!'); load(); };
+  const filtered = customers.filter(c => c.name?.toLowerCase().includes(search.toLowerCase()) || c.email?.toLowerCase().includes(search.toLowerCase()) || c.company?.toLowerCase().includes(search.toLowerCase()));
 
   return (
-    <div className="space-y-6">
-      <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}
-        className="flex items-center justify-between">
+    <div style={{ padding: '24px', minHeight: '100vh', background: 'linear-gradient(135deg, #0f0c29, #302b63, #24243e)' }}>
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
         <div>
-          <h1 className="text-2xl font-bold text-white">Customers</h1>
-          <p className="text-white/40 text-sm mt-1">{customers.length} total customers</p>
+          <h1 style={{ fontSize: '26px', fontWeight: '700', color: 'white', margin: 0 }}>Customers</h1>
+          <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '14px', marginTop: '4px' }}>{customers.length} total customers</p>
         </div>
-        <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
-          onClick={() => { setForm(EMPTY); setEditId(null); setShowModal(true); }}
-          className="gradient-btn flex items-center gap-2 px-4 py-2.5 text-sm">
+        <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => { setForm(EMPTY); setEditId(null); setShowModal(true); }}
+          style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', background: 'linear-gradient(135deg, #667eea, #764ba2)', border: 'none', borderRadius: '12px', color: 'white', fontSize: '14px', fontWeight: '600', cursor: 'pointer', boxShadow: '0 4px 15px rgba(102,126,234,0.4)' }}>
           <FiPlus size={16} /> Add Customer
         </motion.button>
-      </motion.div>
+      </div>
 
       {/* Search */}
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-        className="relative">
-        <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40" size={16} />
-        <input className="glass-input pl-11" placeholder="Search customers..."
-          value={search} onChange={e => setSearch(e.target.value)} />
-      </motion.div>
+      <div style={{ position: 'relative', marginBottom: '20px' }}>
+        <FiSearch size={16} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.35)' }} />
+        <input placeholder="Search customers..." value={search} onChange={e => setSearch(e.target.value)}
+          style={{ ...inputStyle, paddingLeft: '42px' }}
+          onFocus={e => e.target.style.borderColor = 'rgba(102,126,234,0.6)'}
+          onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.12)'} />
+      </div>
 
       {/* Table */}
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
-        className="glass-card overflow-hidden">
+      <div style={{ ...card, overflow: 'hidden' }}>
         {loading ? (
-          <div className="flex items-center justify-center py-20">
+          <div style={{ display: 'flex', justifyContent: 'center', padding: '60px' }}>
             <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-              className="w-8 h-8 border-2 border-white/20 border-t-blue-400 rounded-full" />
+              style={{ width: '32px', height: '32px', border: '3px solid rgba(255,255,255,0.1)', borderTop: '3px solid #667eea', borderRadius: '50%' }} />
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
-                <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+                <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
                   {['Customer', 'Email', 'Phone', 'Company', 'Actions'].map(h => (
-                    <th key={h} className="px-5 py-4 text-left text-xs font-semibold text-white/40 uppercase tracking-wider">{h}</th>
+                    <th key={h} style={{ padding: '14px 20px', textAlign: 'left', fontSize: '11px', fontWeight: '600', color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
-                <AnimatePresence>
-                  {filtered.map((c, i) => (
-                    <motion.tr key={c._id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: i * 0.05 }} className="table-row">
-                      <td className="px-5 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-bold text-white flex-shrink-0"
-                            style={{ background: 'linear-gradient(135deg, #667eea, #764ba2)' }}>
-                            {c.name?.charAt(0).toUpperCase()}
-                          </div>
-                          <span className="text-sm font-medium text-white">{c.name}</span>
+                {filtered.map((c, i) => (
+                  <motion.tr key={c._id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.04 }}
+                    style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}
+                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.03)'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                    <td style={{ padding: '14px 20px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'linear-gradient(135deg, #667eea, #764ba2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', fontWeight: '700', color: 'white', flexShrink: 0 }}>
+                          {c.name?.charAt(0).toUpperCase()}
                         </div>
-                      </td>
-                      <td className="px-5 py-4 text-sm text-white/50">{c.email}</td>
-                      <td className="px-5 py-4 text-sm text-white/50">{c.phone}</td>
-                      <td className="px-5 py-4 text-sm text-white/50">{c.company}</td>
-                      <td className="px-5 py-4">
-                        <div className="flex items-center gap-2">
-                          <motion.button whileHover={{ scale: 1.1 }} onClick={() => handleEdit(c)}
-                            className="p-2 rounded-lg hover:bg-blue-500/20 text-blue-400 transition-colors">
-                            <FiEdit2 size={14} />
-                          </motion.button>
-                          <motion.button whileHover={{ scale: 1.1 }} onClick={() => handleDelete(c._id)}
-                            className="p-2 rounded-lg hover:bg-red-500/20 text-red-400 transition-colors">
-                            <FiTrash2 size={14} />
-                          </motion.button>
-                        </div>
-                      </td>
-                    </motion.tr>
-                  ))}
-                </AnimatePresence>
+                        <span style={{ fontSize: '14px', fontWeight: '500', color: 'white' }}>{c.name}</span>
+                      </div>
+                    </td>
+                    <td style={{ padding: '14px 20px', fontSize: '13px', color: 'rgba(255,255,255,0.45)' }}>{c.email}</td>
+                    <td style={{ padding: '14px 20px', fontSize: '13px', color: 'rgba(255,255,255,0.45)' }}>{c.phone}</td>
+                    <td style={{ padding: '14px 20px', fontSize: '13px', color: 'rgba(255,255,255,0.45)' }}>{c.company}</td>
+                    <td style={{ padding: '14px 20px' }}>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <motion.button whileHover={{ scale: 1.1 }} onClick={() => handleEdit(c)}
+                          style={{ padding: '7px', borderRadius: '8px', background: 'rgba(102,126,234,0.15)', border: '1px solid rgba(102,126,234,0.2)', color: '#818cf8', cursor: 'pointer' }}>
+                          <FiEdit2 size={14} />
+                        </motion.button>
+                        <motion.button whileHover={{ scale: 1.1 }} onClick={() => handleDelete(c._id)}
+                          style={{ padding: '7px', borderRadius: '8px', background: 'rgba(245,87,108,0.15)', border: '1px solid rgba(245,87,108,0.2)', color: '#f5576c', cursor: 'pointer' }}>
+                          <FiTrash2 size={14} />
+                        </motion.button>
+                      </div>
+                    </td>
+                  </motion.tr>
+                ))}
                 {filtered.length === 0 && (
-                  <tr><td colSpan={5} className="text-center py-16 text-white/30">No customers found</td></tr>
+                  <tr><td colSpan={5} style={{ textAlign: 'center', padding: '60px', color: 'rgba(255,255,255,0.25)', fontSize: '14px' }}>No customers found</td></tr>
                 )}
               </tbody>
             </table>
           </div>
         )}
-      </motion.div>
+      </div>
 
       {/* Modal */}
       <AnimatePresence>
         {showModal && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4"
-            style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)' }}
+            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50, padding: '16px' }}
             onClick={e => e.target === e.currentTarget && setShowModal(false)}>
-            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }} className="glass-card p-6 w-full max-w-md">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-semibold text-white">{editId ? 'Edit' : 'Add'} Customer</h3>
-                <button onClick={() => setShowModal(false)} className="p-2 rounded-lg hover:bg-white/10 text-white/50">
-                  <FiX size={18} />
-                </button>
+            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
+              style={{ ...card, padding: '28px', width: '100%', maxWidth: '440px', boxShadow: '0 25px 50px rgba(0,0,0,0.5)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
+                <h3 style={{ fontSize: '18px', fontWeight: '700', color: 'white', margin: 0 }}>{editId ? 'Edit' : 'Add'} Customer</h3>
+                <button onClick={() => setShowModal(false)} style={{ background: 'rgba(255,255,255,0.08)', border: 'none', borderRadius: '8px', padding: '6px', cursor: 'pointer', color: 'rgba(255,255,255,0.5)' }}><FiX size={18} /></button>
               </div>
-              <form onSubmit={handleSubmit} className="space-y-3">
-                {[
-                  { f: 'name', icon: FiUser, placeholder: 'Full Name', required: true },
-                  { f: 'email', icon: FiMail, placeholder: 'Email' },
-                  { f: 'phone', icon: FiPhone, placeholder: 'Phone' },
-                ].map(({ f, icon: Icon, placeholder, required }) => (
-                  <div key={f} className="relative">
-                    <Icon className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40" size={14} />
-                    <input placeholder={placeholder} required={required} className="glass-input pl-10 text-sm"
-                      value={form[f]} onChange={e => setForm({ ...form, [f]: e.target.value })} />
+              <form onSubmit={handleSubmit}>
+                {[{ f: 'name', icon: FiUser, ph: 'Full Name', req: true }, { f: 'email', icon: FiMail, ph: 'Email' }, { f: 'phone', icon: FiPhone, ph: 'Phone' }].map(({ f, icon: Icon, ph, req }) => (
+                  <div key={f} style={{ position: 'relative', marginBottom: '12px' }}>
+                    <Icon size={14} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.35)' }} />
+                    <input placeholder={ph} required={req} value={form[f]} onChange={e => setForm({ ...form, [f]: e.target.value })}
+                      style={{ ...inputStyle, paddingLeft: '40px' }}
+                      onFocus={e => e.target.style.borderColor = 'rgba(102,126,234,0.6)'}
+                      onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.12)'} />
                   </div>
                 ))}
                 {['company', 'address'].map(f => (
-                  <input key={f} placeholder={f.charAt(0).toUpperCase() + f.slice(1)} className="glass-input text-sm"
-                    value={form[f]} onChange={e => setForm({ ...form, [f]: e.target.value })} />
+                  <input key={f} placeholder={f.charAt(0).toUpperCase() + f.slice(1)} value={form[f]} onChange={e => setForm({ ...form, [f]: e.target.value })}
+                    style={{ ...inputStyle, marginBottom: '12px' }}
+                    onFocus={e => e.target.style.borderColor = 'rgba(102,126,234,0.6)'}
+                    onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.12)'} />
                 ))}
-                <textarea placeholder="Notes" rows={2} className="glass-input text-sm resize-none"
-                  value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} />
-                <div className="flex gap-3 pt-2">
-                  <motion.button type="submit" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-                    className="gradient-btn flex-1 py-2.5 text-sm">Save</motion.button>
-                  <button type="button" onClick={() => setShowModal(false)}
-                    className="flex-1 py-2.5 text-sm rounded-xl border border-white/10 text-white/60 hover:bg-white/5">Cancel</button>
+                <textarea placeholder="Notes" rows={2} value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })}
+                  style={{ ...inputStyle, resize: 'none', marginBottom: '20px' }}
+                  onFocus={e => e.target.style.borderColor = 'rgba(102,126,234,0.6)'}
+                  onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.12)'} />
+                <div style={{ display: 'flex', gap: '12px' }}>
+                  <motion.button type="submit" whileHover={{ scale: 1.02 }} style={{ flex: 1, padding: '12px', background: 'linear-gradient(135deg, #667eea, #764ba2)', border: 'none', borderRadius: '12px', color: 'white', fontSize: '14px', fontWeight: '600', cursor: 'pointer' }}>Save</motion.button>
+                  <button type="button" onClick={() => setShowModal(false)} style={{ flex: 1, padding: '12px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', color: 'rgba(255,255,255,0.6)', fontSize: '14px', cursor: 'pointer' }}>Cancel</button>
                 </div>
               </form>
             </motion.div>

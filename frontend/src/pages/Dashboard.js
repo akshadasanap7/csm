@@ -3,47 +3,51 @@ import api from '../api/axios';
 import { motion } from 'framer-motion';
 import {
   AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
-  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
+  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts';
 import { FiUsers, FiTrendingUp, FiDollarSign, FiBell, FiActivity } from 'react-icons/fi';
 
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const COLORS = ['#667eea','#f093fb','#4facfe','#43e97b','#f5576c','#6b7280'];
 
-const StatCard = ({ label, value, icon: Icon, gradient, delay }) => (
-  <motion.div
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ delay, duration: 0.4 }}
-    className="stat-card relative overflow-hidden"
-  >
-    <div className="absolute inset-0 opacity-10 rounded-2xl" style={{ background: gradient }} />
-    <div className="relative z-10">
-      <div className="flex items-center justify-between mb-4">
-        <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: gradient }}>
-          <Icon size={20} className="text-white" />
-        </div>
-        <span className="text-xs text-white/40 bg-white/5 px-2 py-1 rounded-full">This Month</span>
-      </div>
-      <p className="text-3xl font-bold text-white">{value}</p>
-      <p className="text-sm text-white/50 mt-1">{label}</p>
-    </div>
-  </motion.div>
-);
+const card = {
+  background: 'rgba(255,255,255,0.07)',
+  backdropFilter: 'blur(20px)',
+  WebkitBackdropFilter: 'blur(20px)',
+  border: '1px solid rgba(255,255,255,0.1)',
+  borderRadius: '20px',
+  padding: '20px',
+};
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload?.length) {
     return (
-      <div className="glass p-3 text-sm">
-        <p className="text-white/60 mb-1">{label}</p>
-        {payload.map((p, i) => (
-          <p key={i} style={{ color: p.color }}>{p.name}: {p.value}</p>
-        ))}
+      <div style={{ background: 'rgba(15,12,41,0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', padding: '10px 14px' }}>
+        <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '12px', marginBottom: '4px' }}>{label}</p>
+        {payload.map((p, i) => <p key={i} style={{ color: p.color, fontSize: '13px', margin: 0 }}>{p.name}: {p.value}</p>)}
       </div>
     );
   }
   return null;
 };
+
+const StatCard = ({ label, value, icon: Icon, gradient, delay }) => (
+  <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay }}
+    style={{ ...card, position: 'relative', overflow: 'hidden', cursor: 'default' }}
+    whileHover={{ y: -4, boxShadow: '0 20px 40px rgba(0,0,0,0.3)' }}>
+    <div style={{ position: 'absolute', inset: 0, background: gradient, opacity: 0.08, borderRadius: '20px' }} />
+    <div style={{ position: 'relative', zIndex: 1 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+        <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: gradient, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Icon size={20} color="white" />
+        </div>
+        <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', background: 'rgba(255,255,255,0.05)', padding: '4px 10px', borderRadius: '20px' }}>This Month</span>
+      </div>
+      <p style={{ fontSize: '32px', fontWeight: '700', color: 'white', margin: 0 }}>{value}</p>
+      <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.45)', marginTop: '4px' }}>{label}</p>
+    </div>
+  </motion.div>
+);
 
 const Dashboard = () => {
   const [data, setData] = useState(null);
@@ -68,26 +72,28 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className="space-y-6">
+    <div style={{ padding: '24px', minHeight: '100vh', background: 'linear-gradient(135deg, #0f0c29, #302b63, #24243e)' }}>
+
       {/* Header */}
-      <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
-        <h1 className="text-2xl font-bold text-white">Dashboard</h1>
-        <p className="text-white/40 text-sm mt-1">Welcome back! Here's what's happening.</p>
+      <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} style={{ marginBottom: '24px' }}>
+        <h1 style={{ fontSize: '26px', fontWeight: '700', color: 'white', margin: 0 }}>Dashboard</h1>
+        <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '14px', marginTop: '4px' }}>Welcome back! Here's what's happening.</p>
       </motion.div>
 
       {/* Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '24px' }}>
         {stats.map((s, i) => <StatCard key={i} {...s} />)}
       </div>
 
-      {/* Charts Row 1 */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      {/* Charts Row */}
+      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '16px', marginBottom: '24px' }}>
+
         {/* Area Chart */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}
-          className="glass-card p-5 lg:col-span-2">
-          <h3 className="text-sm font-semibold text-white/70 mb-4 flex items-center gap-2">
-            <FiTrendingUp size={16} className="text-blue-400" /> Monthly Leads & Revenue
-          </h3>
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} style={card}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+            <FiTrendingUp size={16} color="#667eea" />
+            <h3 style={{ fontSize: '14px', fontWeight: '600', color: 'rgba(255,255,255,0.7)', margin: 0 }}>Monthly Leads & Revenue</h3>
+          </div>
           <ResponsiveContainer width="100%" height={220}>
             <AreaChart data={monthlyData}>
               <defs>
@@ -101,8 +107,8 @@ const Dashboard = () => {
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-              <XAxis dataKey="month" tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 12 }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 12 }} axisLine={false} tickLine={false} />
+              <XAxis dataKey="month" tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 11 }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 11 }} axisLine={false} tickLine={false} />
               <Tooltip content={<CustomTooltip />} />
               <Area type="monotone" dataKey="leads" stroke="#667eea" fill="url(#leadsGrad)" strokeWidth={2} name="Leads" />
               <Area type="monotone" dataKey="revenue" stroke="#43e97b" fill="url(#revenueGrad)" strokeWidth={2} name="Revenue" />
@@ -111,26 +117,25 @@ const Dashboard = () => {
         </motion.div>
 
         {/* Pie Chart */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}
-          className="glass-card p-5">
-          <h3 className="text-sm font-semibold text-white/70 mb-4">Lead Status</h3>
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }} style={card}>
+          <h3 style={{ fontSize: '14px', fontWeight: '600', color: 'rgba(255,255,255,0.7)', margin: '0 0 16px' }}>Lead Status</h3>
           <ResponsiveContainer width="100%" height={180}>
             <PieChart>
-              <Pie data={statusData} cx="50%" cy="50%" innerRadius={50} outerRadius={80}
-                paddingAngle={3} dataKey="value">
-                {statusData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+              <Pie data={statusData.length ? statusData : [{ name: 'No Data', value: 1 }]}
+                cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={3} dataKey="value">
+                {(statusData.length ? statusData : [{}]).map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
               </Pie>
               <Tooltip content={<CustomTooltip />} />
             </PieChart>
           </ResponsiveContainer>
-          <div className="space-y-2 mt-2">
+          <div style={{ marginTop: '8px' }}>
             {statusData.map((s, i) => (
-              <div key={i} className="flex items-center justify-between text-xs">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full" style={{ background: COLORS[i % COLORS.length] }} />
-                  <span className="text-white/60">{s.name}</span>
+              <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: COLORS[i % COLORS.length] }} />
+                  <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)' }}>{s.name}</span>
                 </div>
-                <span className="text-white font-medium">{s.value}</span>
+                <span style={{ fontSize: '12px', color: 'white', fontWeight: '600' }}>{s.value}</span>
               </div>
             ))}
           </div>
@@ -138,16 +143,16 @@ const Dashboard = () => {
       </div>
 
       {/* Bar Chart */}
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.7 }}
-        className="glass-card p-5">
-        <h3 className="text-sm font-semibold text-white/70 mb-4 flex items-center gap-2">
-          <FiActivity size={16} className="text-purple-400" /> Monthly Performance
-        </h3>
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.7 }} style={{ ...card, marginBottom: '24px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+          <FiActivity size={16} color="#a78bfa" />
+          <h3 style={{ fontSize: '14px', fontWeight: '600', color: 'rgba(255,255,255,0.7)', margin: 0 }}>Monthly Performance</h3>
+        </div>
         <ResponsiveContainer width="100%" height={200}>
           <BarChart data={monthlyData}>
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-            <XAxis dataKey="month" tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 12 }} axisLine={false} tickLine={false} />
-            <YAxis tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 12 }} axisLine={false} tickLine={false} />
+            <XAxis dataKey="month" tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 11 }} axisLine={false} tickLine={false} />
+            <YAxis tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 11 }} axisLine={false} tickLine={false} />
             <Tooltip content={<CustomTooltip />} />
             <Bar dataKey="leads" fill="#667eea" radius={[6, 6, 0, 0]} name="Leads" />
             <Bar dataKey="revenue" fill="#f093fb" radius={[6, 6, 0, 0]} name="Revenue" />
@@ -157,26 +162,25 @@ const Dashboard = () => {
 
       {/* AI Prediction */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8 }}
-        className="glass-card p-5 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-5" style={{ background: 'linear-gradient(135deg, #667eea, #764ba2)' }} />
-        <div className="relative z-10">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center"
-              style={{ background: 'linear-gradient(135deg, #667eea, #764ba2)' }}>
-              <span className="text-xs font-bold text-white">AI</span>
+        style={{ ...card, position: 'relative', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, #667eea, #764ba2)', opacity: 0.05 }} />
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+            <div style={{ width: '32px', height: '32px', borderRadius: '10px', background: 'linear-gradient(135deg, #667eea, #764ba2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <span style={{ fontSize: '11px', fontWeight: '800', color: 'white' }}>AI</span>
             </div>
-            <h3 className="text-sm font-semibold text-white">AI Sales Prediction</h3>
-            <span className="text-xs bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded-full border border-blue-500/30">Beta</span>
+            <h3 style={{ fontSize: '14px', fontWeight: '600', color: 'white', margin: 0 }}>AI Sales Prediction</h3>
+            <span style={{ fontSize: '11px', background: 'rgba(59,130,246,0.2)', color: '#60a5fa', padding: '2px 10px', borderRadius: '20px', border: '1px solid rgba(59,130,246,0.3)' }}>Beta</span>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
             {[
               { label: 'Conversion Probability', value: `${data?.conversionRate || 0}%`, color: '#43e97b' },
               { label: 'Predicted Revenue', value: `$${((data?.convertedLeads || 0) * 1200).toLocaleString()}`, color: '#667eea' },
               { label: 'At-Risk Leads', value: data?.totalLeads ? Math.floor(data.totalLeads * 0.15) : 0, color: '#f5576c' },
             ].map(({ label, value, color }) => (
-              <div key={label} className="p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.05)' }}>
-                <p className="text-xs text-white/50 mb-1">{label}</p>
-                <p className="text-xl font-bold" style={{ color }}>{value}</p>
+              <div key={label} style={{ background: 'rgba(255,255,255,0.05)', borderRadius: '14px', padding: '14px' }}>
+                <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.45)', margin: '0 0 6px' }}>{label}</p>
+                <p style={{ fontSize: '22px', fontWeight: '700', color, margin: 0 }}>{value}</p>
               </div>
             ))}
           </div>
