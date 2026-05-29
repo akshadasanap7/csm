@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import api from '../api/axios';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
-import { FiPlus, FiX, FiUser, FiMail, FiShield } from 'react-icons/fi';
+import { FiPlus, FiX, FiUser, FiMail, FiShield, FiTrash2 } from 'react-icons/fi';
+import { useAuth } from '../context/AuthContext';
 
 const card = { background: 'rgba(255,255,255,0.07)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '20px' };
 const inputStyle = { width: '100%', boxSizing: 'border-box', padding: '11px 16px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '12px', color: 'white', fontSize: '14px', outline: 'none' };
@@ -14,6 +15,7 @@ const ROLE_STYLES = {
 const EMPTY = { name: '', email: '', password: '', role: 'sales' };
 
 const Employees = () => {
+  const { user } = useAuth();
   const [employees, setEmployees] = useState([]);
   const [form, setForm] = useState(EMPTY);
   const [showModal, setShowModal] = useState(false);
@@ -32,6 +34,12 @@ const Employees = () => {
     catch (err) { toast.error(err.response?.data?.msg || 'Error'); }
   };
 
+  const handleDelete = async (id) => {
+    if (!window.confirm('Delete this employee?')) return;
+    try { await api.delete(`/auth/users/${id}`); toast.success('Deleted!'); load(); }
+    catch (err) { toast.error(err.response?.data?.msg || 'Error'); }
+  };
+
   return (
     <div style={{ padding: '24px', minHeight: '100vh', background: 'linear-gradient(135deg, #0f0c29, #302b63, #24243e)' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
@@ -40,7 +48,7 @@ const Employees = () => {
           <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '14px', marginTop: '4px' }}>{employees.length} team members</p>
         </div>
         <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => setShowModal(true)}
-          style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', background: 'linear-gradient(135deg, #667eea, #764ba2)', border: 'none', borderRadius: '12px', color: 'white', fontSize: '14px', fontWeight: '600', cursor: 'pointer', boxShadow: '0 4px 15px rgba(102,126,234,0.4)' }}>
+          style={{ display: user?.role === 'admin' ? 'flex' : 'none', alignItems: 'center', gap: '8px', padding: '10px 20px', background: 'linear-gradient(135deg, #667eea, #764ba2)', border: 'none', borderRadius: '12px', color: 'white', fontSize: '14px', fontWeight: '600', cursor: 'pointer', boxShadow: '0 4px 15px rgba(102,126,234,0.4)' }}>
           <FiPlus size={16} /> Add Employee
         </motion.button>
       </div>
@@ -89,6 +97,12 @@ const Employees = () => {
                 <span style={{ padding: '4px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: '600', background: s.bg, color: s.color, border: `1px solid ${s.border}`, textTransform: 'capitalize' }}>
                   {emp.role}
                 </span>
+                {user?.role === 'admin' && emp._id !== user?._id && (
+                  <motion.button whileHover={{ scale: 1.1 }} onClick={() => handleDelete(emp._id)}
+                    style={{ marginTop: '12px', padding: '6px 12px', borderRadius: '8px', background: 'rgba(245,87,108,0.15)', border: '1px solid rgba(245,87,108,0.2)', color: '#f5576c', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px' }}>
+                    <FiTrash2 size={12} /> Remove
+                  </motion.button>
+                )}
               </motion.div>
             );
           })}

@@ -13,17 +13,28 @@ const Settings = () => {
 
   const handleProfileSave = async (e) => {
     e.preventDefault();
-    toast.success('Profile updated!');
+    try {
+      await api.put('/auth/profile', form);
+      toast.success('Profile updated!');
+    } catch (err) {
+      toast.error(err.response?.data?.msg || 'Update failed');
+    }
   };
 
   const handlePasswordSave = async (e) => {
     e.preventDefault();
-    toast.success('Password changed!');
-    setPassForm({ currentPassword: '', newPassword: '' });
+    try {
+      await api.put('/auth/password', passForm);
+      toast.success('Password changed!');
+      setPassForm({ currentPassword: '', newPassword: '' });
+    } catch (err) {
+      toast.error(err.response?.data?.msg || 'Failed to change password');
+    }
   };
 
   return (
-    <div className="space-y-6 max-w-2xl">
+    <div style={{ padding: '24px', minHeight: '100vh', background: 'linear-gradient(135deg, #0f0c29, #302b63, #24243e)' }}>
+      <div className="space-y-6 max-w-2xl">
       <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
         <h1 className="text-2xl font-bold text-white">Settings</h1>
         <p className="text-white/40 text-sm mt-1">Manage your account preferences</p>
@@ -129,6 +140,7 @@ const Settings = () => {
           ))}
         </div>
       </motion.div>
+      </div>
     </div>
   );
 };
