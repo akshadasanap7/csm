@@ -7,15 +7,15 @@ import {
 } from 'react-icons/fi';
 import { useState } from 'react';
 
-const navItems = [
-  { path: '/', label: 'Dashboard', icon: FiHome },
-  { path: '/customers', label: 'Customers', icon: FiUsers },
-  { path: '/leads', label: 'Leads', icon: FiTrendingUp },
-  { path: '/followups', label: 'Follow-Ups', icon: FiBell },
-  { path: '/analytics', label: 'Analytics', icon: FiBarChart2 },
-  { path: '/employees', label: 'Employees', icon: FiUserPlus },
-  { path: '/activities', label: 'Activities', icon: FiActivity },
-  { path: '/settings', label: 'Settings', icon: FiSettings },
+const allNavItems = [
+  { path: '/', label: 'Dashboard', icon: FiHome, roles: ['admin', 'manager', 'sales'] },
+  { path: '/customers', label: 'Customers', icon: FiUsers, roles: ['admin', 'manager', 'sales'] },
+  { path: '/leads', label: 'Leads', icon: FiTrendingUp, roles: ['admin', 'manager', 'sales'] },
+  { path: '/followups', label: 'Follow-Ups', icon: FiBell, roles: ['admin', 'manager', 'sales'] },
+  { path: '/analytics', label: 'Analytics', icon: FiBarChart2, roles: ['admin', 'manager'] },
+  { path: '/employees', label: 'Employees', icon: FiUserPlus, roles: ['admin', 'manager'] },
+  { path: '/activities', label: 'Activities', icon: FiActivity, roles: ['admin', 'manager'] },
+  { path: '/settings', label: 'Settings', icon: FiSettings, roles: ['admin', 'manager', 'sales'] },
 ];
 
 const Sidebar = () => {
@@ -23,6 +23,7 @@ const Sidebar = () => {
   const { logout, user } = useAuth();
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
+  const navItems = allNavItems.filter(item => item.roles.includes(user?.role));
 
   const handleLogout = () => { logout(); navigate('/login'); };
 
