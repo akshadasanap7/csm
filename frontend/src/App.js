@@ -15,9 +15,8 @@ import Settings from './pages/Settings';
 
 const PublicRoute = ({ children }) => {
   const { user, loading } = useAuth();
-  const token = localStorage.getItem('token');
   if (loading) return null;
-  return (user || token) ? <Navigate to="/" replace /> : children;
+  return user ? <Navigate to="/" replace /> : children;
 };
 
 const AppRoutes = () => (
