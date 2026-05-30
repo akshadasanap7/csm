@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import { useAuth } from './context/AuthContext';
 import PrivateRoute from './components/PrivateRoute';
 import Layout from './components/layout/Layout';
 import Login from './pages/Login';
@@ -13,12 +14,19 @@ import Employees from './pages/Employees';
 import Activities from './pages/Activities';
 import Settings from './pages/Settings';
 
+const PublicRoute = ({ children }) => {
+  const { user, loading } = useAuth();
+  const token = localStorage.getItem('token');
+  if (loading) return null;
+  return (user || token) ? <Navigate to="/" /> : children;
+};
+
 const App = () => (
   <AuthProvider>
     <BrowserRouter>
       <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
+        <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+        <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
         <Route path="/" element={<PrivateRoute><Layout><Dashboard /></Layout></PrivateRoute>} />
         <Route path="/customers" element={<PrivateRoute><Layout><Customers /></Layout></PrivateRoute>} />
         <Route path="/leads" element={<PrivateRoute><Layout><Leads /></Layout></PrivateRoute>} />
