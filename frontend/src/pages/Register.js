@@ -44,11 +44,10 @@ const Register = () => {
     try {
       await api.post('/auth/register', form);
       setSuccess(true);
-      toast.success('Account created successfully!');
-      setTimeout(() => navigate('/login'), 2000);
+      toast.success('Account created successfully!', { duration: 3000 });
+      setTimeout(() => navigate('/login', { replace: true }), 2500);
     } catch (err) {
       toast.error(err.response?.data?.msg || 'Registration failed');
-    } finally {
       setLoading(false);
     }
   };
@@ -105,8 +104,11 @@ const Register = () => {
                 <label style={labelStyle}>Password</label>
                 <div style={{ position: 'relative' }}>
                   <FiLock size={15} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.35)' }} />
-                  <input type={showPass ? 'text' : 'password'} placeholder="Min 8 chars, uppercase, number, symbol" required value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} style={{ ...inputStyle, paddingRight: '44px' }} onFocus={onFocus} onBlur={onBlur} />
-                  <button type="button" onClick={() => setShowPass(!showPass)} style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.35)', padding: 0 }}>
+                  <input type={showPass ? 'text' : 'password'} placeholder="Min 8 chars, uppercase, number, symbol" required value={form.password}
+                    onChange={e => setForm({ ...form, password: e.target.value })}
+                    style={{ ...inputStyle, paddingRight: '44px' }} onFocus={onFocus} onBlur={onBlur} />
+                  <button type="button" onClick={() => setShowPass(!showPass)}
+                    style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.35)', padding: 0 }}>
                     {showPass ? <FiEyeOff size={15} /> : <FiEye size={15} />}
                   </button>
                 </div>
@@ -134,9 +136,7 @@ const Register = () => {
 
               <motion.button type="submit" disabled={loading} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
                 style={{ width: '100%', padding: '13px', background: 'linear-gradient(135deg, #f093fb, #f5576c)', border: 'none', borderRadius: '12px', color: 'white', fontSize: '15px', fontWeight: '600', cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.7 : 1, boxShadow: '0 4px 20px rgba(240,147,251,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                {loading ? (
-                  <><motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }} style={{ width: '16px', height: '16px', border: '2px solid rgba(255,255,255,0.3)', borderTop: '2px solid white', borderRadius: '50%' }} />Creating...</>
-                ) : 'Create Account'}
+                {loading ? (<><motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }} style={{ width: '16px', height: '16px', border: '2px solid rgba(255,255,255,0.3)', borderTop: '2px solid white', borderRadius: '50%' }} />Creating...</>) : 'Create Account'}
               </motion.button>
             </form>
 
