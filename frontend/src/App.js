@@ -1,6 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
-import { useAuth } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import PrivateRoute from './components/PrivateRoute';
 import Layout from './components/layout/Layout';
 import Login from './pages/Login';
@@ -18,25 +17,29 @@ const PublicRoute = ({ children }) => {
   const { user, loading } = useAuth();
   const token = localStorage.getItem('token');
   if (loading) return null;
-  return (user || token) ? <Navigate to="/" /> : children;
+  return (user || token) ? <Navigate to="/" replace /> : children;
 };
+
+const AppRoutes = () => (
+  <Routes>
+    <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+    <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
+    <Route path="/" element={<PrivateRoute><Layout><Dashboard /></Layout></PrivateRoute>} />
+    <Route path="/customers" element={<PrivateRoute><Layout><Customers /></Layout></PrivateRoute>} />
+    <Route path="/leads" element={<PrivateRoute><Layout><Leads /></Layout></PrivateRoute>} />
+    <Route path="/followups" element={<PrivateRoute><Layout><FollowUps /></Layout></PrivateRoute>} />
+    <Route path="/analytics" element={<PrivateRoute><Layout><Analytics /></Layout></PrivateRoute>} />
+    <Route path="/employees" element={<PrivateRoute><Layout><Employees /></Layout></PrivateRoute>} />
+    <Route path="/activities" element={<PrivateRoute><Layout><Activities /></Layout></PrivateRoute>} />
+    <Route path="/settings" element={<PrivateRoute><Layout><Settings /></Layout></PrivateRoute>} />
+    <Route path="*" element={<Navigate to="/" replace />} />
+  </Routes>
+);
 
 const App = () => (
   <AuthProvider>
     <BrowserRouter>
-      <Routes>
-        <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
-        <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
-        <Route path="/" element={<PrivateRoute><Layout><Dashboard /></Layout></PrivateRoute>} />
-        <Route path="/customers" element={<PrivateRoute><Layout><Customers /></Layout></PrivateRoute>} />
-        <Route path="/leads" element={<PrivateRoute><Layout><Leads /></Layout></PrivateRoute>} />
-        <Route path="/followups" element={<PrivateRoute><Layout><FollowUps /></Layout></PrivateRoute>} />
-        <Route path="/analytics" element={<PrivateRoute><Layout><Analytics /></Layout></PrivateRoute>} />
-        <Route path="/employees" element={<PrivateRoute><Layout><Employees /></Layout></PrivateRoute>} />
-        <Route path="/activities" element={<PrivateRoute><Layout><Activities /></Layout></PrivateRoute>} />
-        <Route path="/settings" element={<PrivateRoute><Layout><Settings /></Layout></PrivateRoute>} />
-        <Route path="*" element={<Navigate to="/" />} />
-      </Routes>
+      <AppRoutes />
     </BrowserRouter>
   </AuthProvider>
 );
