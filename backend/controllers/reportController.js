@@ -9,7 +9,7 @@ exports.getDashboard = async (req, res) => {
     Lead.countDocuments(),
     Lead.countDocuments({ status: 'Converted' }),
     FollowUp.countDocuments({ completed: false }),
-    User.countDocuments({ role: 'sales' }),
+    User.countDocuments(),
   ]);
 
   const conversionRate = totalLeads ? ((convertedLeads / totalLeads) * 100).toFixed(1) : 0;

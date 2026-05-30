@@ -34,3 +34,47 @@ exports.getMe = async (req, res) => {
   const user = await User.findById(req.user.id).select('-password');
   res.json(user);
 };
+
+exports.getUsers = async (req, res) => {
+  try {
+    const users = await User.find().select('-password').sort({ createdAt: -1 });
+    res.json(users);
+  } catch (err) {
+    res.status(500).json({ msg: err.message });
+  }
+};
+
+exports.updateProfile = async (req, res) => {
+  try {
+    const { name, email } = req.body;
+    const user = await User.findByIdAndUpdate(req.user.id, { name, email }, { new: true }).select('-password');
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ msg: err.message });
+  }
+};
+
+exports.changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const user = await User.findById(req.user.id);
+    const match = await bcrypt.compare(currentPassword, user.password);
+    if (!match) return res.status(400).json({ msg: 'Current password is incorrect' });
+    user.password = await bcrypt.hash(newPassword, 10);
+    await user.save();
+    res.json({ msg: 'Password updated' });
+  } catch (err) {
+    res.status(500).json({ msg: err.message });
+  }
+};
+
+exports.deleteUser = async (req, res) => {
+  try {
+    if (req.params.id === req.user.id)
+      return res.status(400).json({ msg: 'Cannot delete yourself' });
+    await User.findByIdAndDelete(req.params.id);
+    res.json({ msg: 'User deleted' });
+  } catch (err) {
+    res.status(500).json({ msg: err.message });
+  }
+};

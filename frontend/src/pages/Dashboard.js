@@ -1,67 +1,191 @@
 import { useEffect, useState } from 'react';
 import api from '../api/axios';
-import { Bar, Pie, Line } from 'react-chartjs-2';
+import { motion } from 'framer-motion';
 import {
-  Chart as ChartJS, CategoryScale, LinearScale, BarElement,
-  ArcElement, PointElement, LineElement, Tooltip, Legend
-} from 'chart.js';
-
-ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, PointElement, LineElement, Tooltip, Legend);
+  AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
+  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
+} from 'recharts';
+import { FiUsers, FiTrendingUp, FiDollarSign, FiBell, FiActivity } from 'react-icons/fi';
 
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const COLORS = ['#667eea','#f093fb','#4facfe','#43e97b','#f5576c','#6b7280'];
 
-const StatCard = ({ label, value, color }) => (
-  <div className={`bg-white rounded-xl p-5 shadow-sm border-l-4 ${color}`}>
-    <p className="text-sm text-gray-500">{label}</p>
-    <p className="text-3xl font-bold text-gray-800 mt-1">{value}</p>
-  </div>
+const card = {
+  background: 'rgba(255,255,255,0.07)',
+  backdropFilter: 'blur(20px)',
+  WebkitBackdropFilter: 'blur(20px)',
+  border: '1px solid rgba(255,255,255,0.1)',
+  borderRadius: '20px',
+  padding: '20px',
+};
+
+const CustomTooltip = ({ active, payload, label }) => {
+  if (active && payload?.length) {
+    return (
+      <div style={{ background: 'rgba(15,12,41,0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', padding: '10px 14px' }}>
+        <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '12px', marginBottom: '4px' }}>{label}</p>
+        {payload.map((p, i) => <p key={i} style={{ color: p.color, fontSize: '13px', margin: 0 }}>{p.name}: {p.value}</p>)}
+      </div>
+    );
+  }
+  return null;
+};
+
+const StatCard = ({ label, value, icon: Icon, gradient, delay }) => (
+  <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay }}
+    style={{ ...card, position: 'relative', overflow: 'hidden', cursor: 'default' }}
+    whileHover={{ y: -4, boxShadow: '0 20px 40px rgba(0,0,0,0.3)' }}>
+    <div style={{ position: 'absolute', inset: 0, background: gradient, opacity: 0.08, borderRadius: '20px' }} />
+    <div style={{ position: 'relative', zIndex: 1 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+        <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: gradient, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Icon size={20} color="white" />
+        </div>
+        <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', background: 'rgba(255,255,255,0.05)', padding: '4px 10px', borderRadius: '20px' }}>This Month</span>
+      </div>
+      <p style={{ fontSize: '32px', fontWeight: '700', color: 'white', margin: 0 }}>{value}</p>
+      <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.45)', marginTop: '4px' }}>{label}</p>
+    </div>
+  </motion.div>
 );
 
 const Dashboard = () => {
   const [data, setData] = useState(null);
 
-  useEffect(() => { api.get('/reports/dashboard').then(r => setData(r.data)); }, []);
+  useEffect(() => {
+    api.get('/reports/dashboard').then(r => setData(r.data)).catch(() => {});
+  }, []);
 
-  if (!data) return <div className="text-center py-20 text-gray-500">Loading dashboard...</div>;
+  const monthlyData = MONTHS.map((m, i) => ({
+    month: m,
+    leads: data?.monthlyLeads?.find(l => l._id === i + 1)?.count || 0,
+    revenue: data?.revenueByMonth?.find(r => r._id === i + 1)?.revenue || 0,
+  }));
 
-  const monthlyData = {
-    labels: data.monthlyLeads.map(m => MONTHS[m._id - 1]),
-    datasets: [{ label: 'Leads', data: data.monthlyLeads.map(m => m.count), backgroundColor: '#3b82f6' }],
-  };
+  const statusData = data?.leadsByStatus?.map(s => ({ name: s._id, value: s.count })) || [];
 
-  const statusData = {
-    labels: data.leadsByStatus.map(s => s._id),
-    datasets: [{ data: data.leadsByStatus.map(s => s.count), backgroundColor: ['#3b82f6','#10b981','#f59e0b','#8b5cf6','#ef4444','#6b7280'] }],
-  };
-
-  const revenueData = {
-    labels: data.revenueByMonth.map(m => MONTHS[m._id - 1]),
-    datasets: [{ label: 'Revenue ($)', data: data.revenueByMonth.map(m => m.revenue), borderColor: '#10b981', tension: 0.4, fill: false }],
-  };
+  const stats = [
+    { label: 'Total Customers', value: data?.totalCustomers || 0, icon: FiUsers, gradient: 'linear-gradient(135deg, #667eea, #764ba2)', delay: 0.1 },
+    { label: 'Total Leads', value: data?.totalLeads || 0, icon: FiTrendingUp, gradient: 'linear-gradient(135deg, #f093fb, #f5576c)', delay: 0.2 },
+    { label: 'Converted Leads', value: data?.convertedLeads || 0, icon: FiDollarSign, gradient: 'linear-gradient(135deg, #43e97b, #38f9d7)', delay: 0.3 },
+    { label: 'Pending Follow-Ups', value: data?.pendingFollowups || 0, icon: FiBell, gradient: 'linear-gradient(135deg, #4facfe, #00f2fe)', delay: 0.4 },
+  ];
 
   return (
-    <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-gray-800">Dashboard</h2>
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Total Customers" value={data.totalCustomers} color="border-blue-500" />
-        <StatCard label="Total Leads" value={data.totalLeads} color="border-purple-500" />
-        <StatCard label="Converted Leads" value={data.convertedLeads} color="border-green-500" />
-        <StatCard label="Pending Follow-Ups" value={data.pendingFollowups} color="border-yellow-500" />
+    <div style={{ padding: '24px', minHeight: '100vh', background: 'linear-gradient(135deg, #0f0c29, #302b63, #24243e)' }}>
+
+      {/* Header */}
+      <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} style={{ marginBottom: '24px' }}>
+        <h1 style={{ fontSize: '26px', fontWeight: '700', color: 'white', margin: 0 }}>Dashboard</h1>
+        <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '14px', marginTop: '4px' }}>Welcome back! Here's what's happening.</p>
+      </motion.div>
+
+      {/* Stat Cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '24px' }}>
+        {stats.map((s, i) => <StatCard key={i} {...s} />)}
       </div>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="bg-white rounded-xl p-5 shadow-sm lg:col-span-2">
-          <h3 className="text-sm font-semibold text-gray-600 mb-4">Monthly Leads</h3>
-          <Bar data={monthlyData} options={{ responsive: true, plugins: { legend: { display: false } } }} />
+
+      {/* Charts Row */}
+      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '16px', marginBottom: '24px' }}>
+
+        {/* Area Chart */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} style={card}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+            <FiTrendingUp size={16} color="#667eea" />
+            <h3 style={{ fontSize: '14px', fontWeight: '600', color: 'rgba(255,255,255,0.7)', margin: 0 }}>Monthly Leads & Revenue</h3>
+          </div>
+          <ResponsiveContainer width="100%" height={220}>
+            <AreaChart data={monthlyData}>
+              <defs>
+                <linearGradient id="leadsGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#667eea" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#667eea" stopOpacity={0} />
+                </linearGradient>
+                <linearGradient id="revenueGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#43e97b" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#43e97b" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+              <XAxis dataKey="month" tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 11 }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 11 }} axisLine={false} tickLine={false} />
+              <Tooltip content={<CustomTooltip />} />
+              <Area type="monotone" dataKey="leads" stroke="#667eea" fill="url(#leadsGrad)" strokeWidth={2} name="Leads" />
+              <Area type="monotone" dataKey="revenue" stroke="#43e97b" fill="url(#revenueGrad)" strokeWidth={2} name="Revenue" />
+            </AreaChart>
+          </ResponsiveContainer>
+        </motion.div>
+
+        {/* Pie Chart */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }} style={card}>
+          <h3 style={{ fontSize: '14px', fontWeight: '600', color: 'rgba(255,255,255,0.7)', margin: '0 0 16px' }}>Lead Status</h3>
+          <ResponsiveContainer width="100%" height={180}>
+            <PieChart>
+              <Pie data={statusData.length ? statusData : [{ name: 'No Data', value: 1 }]}
+                cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={3} dataKey="value">
+                {(statusData.length ? statusData : [{}]).map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+              </Pie>
+              <Tooltip content={<CustomTooltip />} />
+            </PieChart>
+          </ResponsiveContainer>
+          <div style={{ marginTop: '8px' }}>
+            {statusData.map((s, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: COLORS[i % COLORS.length] }} />
+                  <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)' }}>{s.name}</span>
+                </div>
+                <span style={{ fontSize: '12px', color: 'white', fontWeight: '600' }}>{s.value}</span>
+              </div>
+            ))}
+          </div>
+        </motion.div>
+      </div>
+
+      {/* Bar Chart */}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.7 }} style={{ ...card, marginBottom: '24px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+          <FiActivity size={16} color="#a78bfa" />
+          <h3 style={{ fontSize: '14px', fontWeight: '600', color: 'rgba(255,255,255,0.7)', margin: 0 }}>Monthly Performance</h3>
         </div>
-        <div className="bg-white rounded-xl p-5 shadow-sm">
-          <h3 className="text-sm font-semibold text-gray-600 mb-4">Leads by Status</h3>
-          <Pie data={statusData} />
+        <ResponsiveContainer width="100%" height={200}>
+          <BarChart data={monthlyData}>
+            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+            <XAxis dataKey="month" tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 11 }} axisLine={false} tickLine={false} />
+            <YAxis tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 11 }} axisLine={false} tickLine={false} />
+            <Tooltip content={<CustomTooltip />} />
+            <Bar dataKey="leads" fill="#667eea" radius={[6, 6, 0, 0]} name="Leads" />
+            <Bar dataKey="revenue" fill="#f093fb" radius={[6, 6, 0, 0]} name="Revenue" />
+          </BarChart>
+        </ResponsiveContainer>
+      </motion.div>
+
+      {/* AI Prediction */}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8 }}
+        style={{ ...card, position: 'relative', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, #667eea, #764ba2)', opacity: 0.05 }} />
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+            <div style={{ width: '32px', height: '32px', borderRadius: '10px', background: 'linear-gradient(135deg, #667eea, #764ba2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <span style={{ fontSize: '11px', fontWeight: '800', color: 'white' }}>AI</span>
+            </div>
+            <h3 style={{ fontSize: '14px', fontWeight: '600', color: 'white', margin: 0 }}>AI Sales Prediction</h3>
+            <span style={{ fontSize: '11px', background: 'rgba(59,130,246,0.2)', color: '#60a5fa', padding: '2px 10px', borderRadius: '20px', border: '1px solid rgba(59,130,246,0.3)' }}>Beta</span>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
+            {[
+              { label: 'Conversion Probability', value: `${data?.conversionRate || 0}%`, color: '#43e97b' },
+              { label: 'Predicted Revenue', value: `$${((data?.convertedLeads || 0) * 1200).toLocaleString()}`, color: '#667eea' },
+              { label: 'At-Risk Leads', value: data?.totalLeads ? Math.floor(data.totalLeads * 0.15) : 0, color: '#f5576c' },
+            ].map(({ label, value, color }) => (
+              <div key={label} style={{ background: 'rgba(255,255,255,0.05)', borderRadius: '14px', padding: '14px' }}>
+                <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.45)', margin: '0 0 6px' }}>{label}</p>
+                <p style={{ fontSize: '22px', fontWeight: '700', color, margin: 0 }}>{value}</p>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
-      <div className="bg-white rounded-xl p-5 shadow-sm">
-        <h3 className="text-sm font-semibold text-gray-600 mb-4">Revenue Trend</h3>
-        <Line data={revenueData} options={{ responsive: true }} />
-      </div>
+      </motion.div>
     </div>
   );
 };

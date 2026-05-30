@@ -7,7 +7,7 @@ require('./utils/reminderCron');
 const app = express();
 connectDB();
 
-app.use(cors({ origin: process.env.CLIENT_URL }));
+app.use(cors({ origin: [process.env.CLIENT_URL, 'http://localhost:3000', 'http://localhost:3001'], credentials: true }));
 app.use(express.json());
 
 app.use('/api/auth', require('./routes/authRoutes'));
