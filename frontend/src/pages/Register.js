@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import api from '../api/axios';
+import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { FiUser, FiMail, FiLock, FiShield, FiEye, FiEyeOff } from 'react-icons/fi';
 
 const Register = () => {
+  const { register } = useAuth();
   const navigate = useNavigate();
   const [form, setForm] = useState({ name: '', email: '', password: '', role: 'sales' });
   const [loading, setLoading] = useState(false);
@@ -15,9 +16,9 @@ const Register = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      await api.post('/auth/register', form);
-      toast.success('Account created!');
-      navigate('/login');
+      await register(form.name, form.email, form.password, form.role);
+      toast.success('Account created! Welcome!');
+      navigate('/');
     } catch (err) {
       toast.error(err.response?.data?.msg || 'Registration failed');
     } finally {
